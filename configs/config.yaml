@@ -1,0 +1,69 @@
+xml_path: "robots/g1/no_hand.xml"
+ang_vel_scale: 1 # 0.25
+dof_pos_scale: 1.0
+dof_vel_scale: 1 #0.05
+ref_body_ang_vel_root_scale: 1 # 0.25
+ref_body_vel_root_scale: 1 #0.25
+
+# Scales grouped for deployment script (kept top-level scales above for back-compat)
+obs_scales:
+  base_ang_vel: ${ang_vel_scale}
+  base_euler_xyz: 1.0
+  dof_pos: ${dof_pos_scale}
+  dof_vel: ${dof_vel_scale}
+  ref_body_ang_vel_root: ${ref_body_ang_vel_root_scale}
+  ref_body_rot_root: 1.0
+  ref_body_vel_root: ${ref_body_vel_root_scale}
+  ref_joint_angles: 1.0
+  ref_joint_velocities: 1.0
+
+# All noise scales set to zero (requested)
+noise_scales:
+  base_ang_vel: 0.1
+  base_euler_xyz: 0.0
+  dof_pos: 0.0
+  dof_vel: 0.0
+  ref_joint_angles: 0.0
+  ref_joint_velocities: 0.0
+
+num_actions: 29
+
+# Used for viewer latency simulation in debug mode; keep 0 delay by default
+action_depaly_decimation: [0, 0]
+
+motion:
+  motion_file_npz: "policy/motion.npz"
+  asset:
+    assetRoot: "robots/g1/"
+    assetFileName: "robots/g1/no_hand.xml"
+  visualization:
+    customize_color : True
+    marker_joint_colors : 
+    - [0.929, 0.867, 0.437] # pelvis
+    - [0.929, 0.867, 0.437] # left_hip_yaw_joint
+    - [0.929, 0.867, 0.437] # left_hip_roll_joint
+    - [0.929, 0.867, 0.437] # left_hip_pitch_joint
+    - [0.929, 0.867, 0.437] # left_knee_joint
+    - [0.929, 0.867, 0.437] # left_ankle_pitch_joint
+    - [0.929, 0.867, 0.437] # left_ankle_roll_joint
+    - [0.929, 0.867, 0.437] # right_hip_yaw_joint
+    - [0.929, 0.867, 0.437] # right_hip_roll_joint
+    - [0.929, 0.867, 0.437] # right_hip_pitch_joint
+    - [0.929, 0.867, 0.437] # right_knee_joint
+    - [0.929, 0.867, 0.437] # right_ankle_pitch_joint
+    - [0.929, 0.867, 0.437] # right_ankle_roll_joint
+    - [0.929, 0.867, 0.437] # waist_yaw_joint
+    - [0.929, 0.867, 0.437] # waist_roll_joint
+    - [0.929, 0.867, 0.437] # torso_joint (waist_pitch_link)
+    - [0.929, 0.867, 0.437] # left_shoulder_pitch_joint
+    - [0.929, 0.867, 0.437] # left_shoulder_roll_joint
+    - [0.929, 0.867, 0.437] # left_shoulder_yaw_joint
+    - [0.929, 0.867, 0.437] # left_elbow_joint
+    - [0.929, 0.867, 0.437] # right_shoulder_pitch_joint
+    - [0.929, 0.867, 0.437] # right_shoulder_roll_joint
+    - [0.929, 0.867, 0.437] # right_shoulder_yaw_joint
+    - [0.929, 0.867, 0.437] # right_elbow_joint
+    - [0, 0.351, 0.613] # left_elbow_joint_extend
+    - [0, 0.351, 0.613] # right_elbow_joint_extend
+    - [0, 0.351, 0.613] # head_link
+
