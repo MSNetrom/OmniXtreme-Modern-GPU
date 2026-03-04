@@ -362,7 +362,7 @@ class DeployNode():
         self.motion_res_buf = []
 
         self.stidx=0
-        self.motion_res_buf_bm=get_npz_motion(self.config["motion"]['motion_file_npz'],'cuda')
+        self.motion_res_buf_bm=get_npz_motion(self.config["motion"]['motion_file_npz'], self.device)
         self._ref_motion_length = len(self.motion_res_buf_bm)
         self.motion_res_buf=self.motion_res_buf_bm[self.stidx:]  
         self.bm_anchor_id=9

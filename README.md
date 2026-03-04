@@ -31,25 +31,22 @@ The following components are under consideration for future open-source release:
 ---
 
 ## Installation
-### 1. Create conda environment and set environment variable
-```
-git clone https://github.com/Perkins729/OmniXtreme.git
-cd OmniXtreme
-conda create -n omnixtreme python=3.8
-conda activate omnixtreme
-conda install -c conda-forge cudnn=8
-pip install -r requirements.txt
-export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+
+### 0. Install Micromamba
+```bash
+"${SHELL}" <(curl -L micro.mamba.pm/install.sh)
 ```
 
+### 1. Create a GPU-ready Micromamba environment
+```bash
+micromamba create -f environment.yml
+micromamba activate omnixtreme
+```
 
-
-
-
-### 2. Set motion path
+### 3. Set motion path
 Download the curated subset of our motion data from [this link](https://drive.google.com/file/d/1-LXEmUfW80BXYQ0tAZx341PzY8u14Z9Q/view?usp=sharing) and move it to the policy directory `policy/`. 
 
-### 3.Run policy
-```
+### 4. Run policy
+```bash
 python deploy_mujoco.py
 ```

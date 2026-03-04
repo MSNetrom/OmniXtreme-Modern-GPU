@@ -182,7 +182,12 @@ class OnnxBasePolicyWrapper(torch.nn.Module):
             prov = set(self.session.get_providers())
         except Exception:
             prov = set()
-        return (self.device.type == "cuda") and ("CUDAExecutionProvider" in prov or "TensorrtExecutionProvider" in prov)
+        has_dlpack_ortvalue = hasattr(ort, "OrtValue") and hasattr(ort.OrtValue, "from_dlpack")
+        return (
+            self.device.type == "cuda"
+            and ("CUDAExecutionProvider" in prov or "TensorrtExecutionProvider" in prov)
+            and has_dlpack_ortvalue
+        )
 
     def _action_dim(self) -> int:
         try:
