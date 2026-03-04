@@ -7,3 +7,4 @@ onnx==1.17.0
 onnxruntime-gpu==1.24.2
 torch==2.10.0
 scipy==1.10.1
+tensorrt==10.15.1.29

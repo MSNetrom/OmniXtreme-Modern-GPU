@@ -1,4 +1,5 @@
 import os
+import ctypes
 from typing import Callable, Optional, Tuple, Dict, Any, List
 
 import numpy as np
@@ -8,6 +9,49 @@ try:
     import onnxruntime as ort
 except Exception:
     ort = None
+
+
+def _prepare_tensorrt_runtime(debug: bool = False) -> None:
+    """Prepare TensorRT shared libraries for ONNX Runtime TensorRT EP.
+
+    We preload TensorRT libs from the pip package location instead of mutating
+    activation-time linker settings.
+    """
+    if getattr(_prepare_tensorrt_runtime, "_done", False):
+        return
+
+    try:
+        import tensorrt_libs  # type: ignore
+    except Exception:
+        if debug:
+            print("[ONNX TRT] tensorrt_libs package not found; skipping TRT runtime setup")
+        return
+
+    trt_lib_dir = os.path.dirname(getattr(tensorrt_libs, "__file__", ""))
+    if not trt_lib_dir:
+        return
+
+    preload_prefixes = ("libnvinfer.so", "libnvinfer_plugin.so")
+    preload_libs = []
+    try:
+        for name in os.listdir(trt_lib_dir):
+            if name.startswith(preload_prefixes):
+                full = os.path.join(trt_lib_dir, name)
+                if os.path.isfile(full):
+                    preload_libs.append(full)
+    except Exception:
+        preload_libs = []
+
+    for lib_path in sorted(set(preload_libs)):
+        try:
+            ctypes.CDLL(lib_path, mode=ctypes.RTLD_GLOBAL)
+            if debug:
+                print(f"[ONNX TRT] Preloaded {lib_path}")
+        except Exception as e:
+            if debug:
+                print(f"[ONNX TRT] Failed to preload {lib_path}: {e}")
+
+    _prepare_tensorrt_runtime._done = True
 
 
 
@@ -28,9 +72,12 @@ class OnnxResidualPolicyWrapper(torch.nn.Module):
         sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
 
         # Providers: optional TensorRT EP, then CUDA, then CPU
-        want_trt = os.environ.get("TENSORRT_EP", "0") not in ("0", "false", "False") or \
-                   os.environ.get("ONNX_TRT", "0") not in ("0", "false", "False") or \
+        want_trt = os.environ.get("ONNX_TRT", "0") not in ("0", "false", "False") or \
+                   os.environ.get("TENSORRT_EP", "0") not in ("0", "false", "False") or \
                    os.environ.get("ORT_TRT", "0") not in ("0", "false", "False")
+        debug = os.environ.get("ONNX_DEBUG", "0") not in ("0", "false", "False")
+        if want_trt:
+            _prepare_tensorrt_runtime(debug=debug)
         avail = set(getattr(ort, "get_available_providers", lambda: [])())
         providers: list = []
         if torch.cuda.is_available():
@@ -52,7 +99,6 @@ class OnnxResidualPolicyWrapper(torch.nn.Module):
                 providers.append(("CUDAExecutionProvider", {"arena_extend_strategy": "kSameAsRequested"}))
         providers.append("CPUExecutionProvider")
 
-        debug = os.environ.get("ONNX_DEBUG", "0") not in ("0", "false", "False")
         try:
             self.session = ort.InferenceSession(onnx_path, sess_options=sess_opts, providers=providers)
         except Exception as e:
@@ -116,9 +162,12 @@ class OnnxBasePolicyWrapper(torch.nn.Module):
         sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
 
         # Providers: optional TensorRT EP, then CUDA, then CPU
-        want_trt = os.environ.get("TENSORRT_EP", "0") not in ("0", "false", "False") or \
-                   os.environ.get("ONNX_TRT", "0") not in ("0", "false", "False") or \
+        want_trt = os.environ.get("ONNX_TRT", "0") not in ("0", "false", "False") or \
+                   os.environ.get("TENSORRT_EP", "0") not in ("0", "false", "False") or \
                    os.environ.get("ORT_TRT", "0") not in ("0", "false", "False")
+        debug = os.environ.get("ONNX_DEBUG", "0") not in ("0", "false", "False")
+        if want_trt:
+            _prepare_tensorrt_runtime(debug=debug)
         avail = set(getattr(ort, "get_available_providers", lambda: [])())
         providers: list = []
         if torch.cuda.is_available():

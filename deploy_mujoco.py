@@ -8,7 +8,7 @@ import numpy as np
 import faulthandler
 from omegaconf import OmegaConf
 
-from residual_policy import OnnxResidualPolicyWrapper, OnnxBasePolicyWrapper  
+from residual_policy import OnnxResidualPolicyWrapper, OnnxBasePolicyWrapper, _prepare_tensorrt_runtime
 from scipy.spatial.transform import Rotation as R
 from isaac_utils import  rotations as _rot
 import onnxruntime as ort
@@ -146,9 +146,12 @@ def _make_fk_onnx_session(onnx_path: str):
     sess_opts = ort.SessionOptions()
     sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
 
-    want_trt = os.environ.get("TENSORRT_EP", "0") not in ("0", "false", "False") or \
-               os.environ.get("ONNX_TRT", "0") not in ("0", "false", "False") or \
+    debug = os.environ.get("ONNX_DEBUG", "0") not in ("0", "false", "False")
+    want_trt = os.environ.get("ONNX_TRT", "0") not in ("0", "false", "False") or \
+               os.environ.get("TENSORRT_EP", "0") not in ("0", "false", "False") or \
                os.environ.get("ORT_TRT", "0") not in ("0", "false", "False")
+    if want_trt:
+        _prepare_tensorrt_runtime(debug=debug)
     avail = set(getattr(ort, "get_available_providers", lambda: [])())
     providers: list = []
     if torch.cuda.is_available():
@@ -170,7 +173,6 @@ def _make_fk_onnx_session(onnx_path: str):
             providers.append(("CUDAExecutionProvider", {"arena_extend_strategy": "kSameAsRequested"}))
     providers.append("CPUExecutionProvider")
 
-    debug = os.environ.get("ONNX_DEBUG", "0") not in ("0", "false", "False")
     try:
         sess = ort.InferenceSession(onnx_path, sess_options=sess_opts, providers=providers)
     except Exception as e:

@@ -32,21 +32,25 @@ The following components are under consideration for future open-source release:
 
 ## Installation
 
-### 0. Install Micromamba
+### 0. Install Micromamba (or conda)
 ```bash
 "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
 ```
 
 ### 1. Create a GPU-ready Micromamba environment
 ```bash
+# Use "conda" instead of "micromamba" if you want to use "conda"
 micromamba create -f environment.yml
 micromamba activate omnixtreme
 ```
 
-### 3. Set motion path
+### 2. Set motion path
 Download the curated subset of our motion data from [this link](https://drive.google.com/file/d/1-LXEmUfW80BXYQ0tAZx341PzY8u14Z9Q/view?usp=sharing) and move it to the policy directory `policy/`. 
 
-### 4. Run policy
+### 3. Run policy
 ```bash
 python deploy_mujoco.py
+
+# Optional: enable TensorRT EP
+ONNX_TRT=1 python deploy_mujoco.py
 ```
